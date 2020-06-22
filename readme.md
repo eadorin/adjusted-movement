@@ -21,6 +21,7 @@ Simply use the install module screen within the FoundryVTT setup
 - All simultaneous requests
 - Icon on Control Hud/Scene/Tokens to indicate that they are locked
 - Limit movement to the maximum distance specified in their sheet.
+- "Waiting on Movement Approval" notification
 
 
 ## Troubleshooting
