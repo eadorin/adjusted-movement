@@ -1,3 +1,4 @@
 {
-    
+    "adjusted-movement.options.lock-all-tokens.name" : "Lock all tokens",
+    "adjusted-movement.options.lock-all-tokens.hint" : "Lock all game tokens. Requests for movement sent using the Ruler tool + spacebar."
 }

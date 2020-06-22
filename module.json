@@ -13,6 +13,7 @@
     "languages": [
       { "lang": "en", "name": "English", "path": "lang/en.json" }
     ],
-    "changelog": "https:github.com/eadorin/adjusted-movement/blob/v0.1.0/changelog.md"
+    "changelog": "https:github.com/eadorin/adjusted-movement/blob/v0.1.0/changelog.md",
+    "socket": true
   }
   
