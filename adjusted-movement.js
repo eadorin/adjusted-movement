@@ -71,6 +71,15 @@ export class AdjustedMovement {
             type: Boolean,
             onChange: x => window.location.reload()
         });
+        game.settings.register(mod,'skip-request',{
+            name: "adjusted-movement.options.skip-request.name",
+            hint: "adjusted-movement.options.skip-request.hint",
+            scope: "world",
+            config: true,
+            default: false,
+            type: Boolean,
+            onChange: x => window.location.reload()
+        });
 
 
         /* Monkey Patch the ruler to allow the ALT key to pause drawing */
@@ -132,14 +141,24 @@ export class AdjustedMovement {
 
                 // ok we can move our character
 
-                // our custom handler
-                (async () => {           
-                    let confirm = await getConfirmation("Request the movement?");
-                    if (confirm) {
-                        Socket.requestMovementApproval({userid:game.user.id,event:event});
-                    }
-                })();
-
+                if(game.user.isGM) {
+                        // Move along a measured ruler
+                    let moved = ruler.moveToken(event);
+                    if ( moved ) event.preventDefault();
+                } else {
+                
+                    // our custom handler
+                    (async () => {
+                        if (game.settings.get(mod,"skip-request")) {
+                            let confirm = await getConfirmation("Request the movement?");
+                        } else {
+                            let confirm = true;
+                        }
+                        if (confirm) {
+                            Socket.requestMovementApproval({userid:game.user.id,event:event});
+                        }
+                    })();
+                }
             }else if ( !modifiers.hasFocus && game.user.isGM ) {
                 event.preventDefault();
                 game.togglePause(null, true);
