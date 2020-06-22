@@ -1,6 +1,9 @@
 # Adjusted Movement -- FoundryVTT Module
 Enables the GM to better control player token movement.
 
+![New Targets](https://github.com/eadorin/adjusted-movement/blob/master/screenshots/requesting_movement.png?raw=true)
+![New Target Inticators](https://github.com/eadorin/adjusted-movement/blob/master/screenshots/approving_movement.png?raw=true)
+
 
 ## Installation
 Simply use the install module screen within the FoundryVTT setup
