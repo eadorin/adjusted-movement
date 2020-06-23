@@ -19,7 +19,6 @@ class Socket {
                     }
                     break;
                 case "approveDenyMovement" :
-                    console.log("Data",data.payload);
                         if (data.payload.approved == true) {
                             const ruler = canvas.controls.ruler;
                             let moved = ruler.moveToken(data.payload.event);
@@ -123,7 +122,6 @@ export class AdjustedMovement {
             for ( let [i, token] of canvas.tokens.placeables.entries()){
                 if (!(token instanceof Token) || !token.actor) { continue; }
                     token.data.locked = true;
-                    console.log("Adjusted",token);
             }
         }
 
@@ -149,11 +147,8 @@ export class AdjustedMovement {
                 
                     // our custom handler
                     (async () => {
-                        if (game.settings.get(mod,"skip-request")) {
-                            let confirm = await getConfirmation("Request the movement?");
-                        } else {
-                            let confirm = true;
-                        }
+
+                        let confirm = (game.settings.get(mod,"skip-request")) ? true : await getConfirmation("Request the movement?");
                         if (confirm) {
                             Socket.requestMovementApproval({userid:game.user.id,event:event});
                         }
@@ -172,7 +167,6 @@ export class AdjustedMovement {
     static controlToken(token, opt) {
         if (game.settings.get(mod,'lock-all-tokens')) {
             token.data.locked = (game.user.isGM) ? false : true;
-            console.log("Adjust-control",token);
         }
         
     }
