@@ -22,7 +22,7 @@ class Socket {
                         if (data.payload.approved == true) {
                             const ruler = canvas.controls.ruler;
                             let moved = ruler.moveToken(data.payload.event);
-                            if ( moved ) data.payload.event.preventDefault();
+                            // if ( moved ) data.payload.event.preventDefault();
                         }
                     break;
                 default:
@@ -133,6 +133,7 @@ export class AdjustedMovement {
         KeyboardManager.prototype._onSpace = function(event, up, modifiers) {
             const ruler = canvas.controls.ruler;
             if ( up ) return;
+            let oe = event.originalEvent;
 
             // Move along a measured ruler
             if ( canvas.ready && ruler.active ) {
@@ -150,7 +151,7 @@ export class AdjustedMovement {
 
                         let confirm = (game.settings.get(mod,"skip-request")) ? true : await getConfirmation("Request the movement?");
                         if (confirm) {
-                            Socket.requestMovementApproval({userid:game.user.id,event:event});
+                            Socket.requestMovementApproval({userid:game.user.id,event:oe});
                         }
                     })();
                 }
