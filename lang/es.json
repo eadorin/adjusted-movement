@@ -1,0 +1,6 @@
+{
+    "adjusted-movement.options.lock-all-tokens.name" : "Bloquear todos los iconos",
+    "adjusted-movement.options.lock-all-tokens.hint" : "Bloquear todos los iconos de juego. La Petición de Movimiento debe realizarse utilizando la Herramienta de Regla + la barra de espacio.",
+    "adjusted-movement.options.skip-request.name" : "Saltar diálogo de Petición de Movimiento",
+    "adjusted-movement.options.skip-request.hint" : "Cuando los jugadores presionen la barra de espacio, se enviará automáticamente una Petición de Movimiento." 
+}
