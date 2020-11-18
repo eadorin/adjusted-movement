@@ -11,7 +11,12 @@
     "download": "https://github.com/eadorin/adjusted-movement/archive/master.zip",
     "url": "https://github.com/eadorin/adjusted-movement",
     "languages": [
-      { "lang": "en", "name": "English", "path": "lang/en.json" }
+      { "lang": "en", "name": "English", "path": "lang/en.json" },
+      {
+          "lang": "es",
+          "name": "Spanish",
+          "path": "lang/es.json"
+      }
     ],
     "changelog": "https:github.com/eadorin/adjusted-movement/blob/v0.1.0/changelog.md",
     "socket": true
