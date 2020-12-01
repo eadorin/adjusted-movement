@@ -13,7 +13,7 @@ Simply use the install module screen within the FoundryVTT setup
 
 - "Lock" tokens so players must request approval before moving (Uses the ruler measurement tool)
 
-- *IMPORTANT* When the player is done selecting their path, they can hold the "ALT" key to prevent it from continuing to draw as they move to request Approval.
+- The ruler is locked for the player whilst they wait for approval
 
 ## Known Issues / Limitations
 
