@@ -20,14 +20,13 @@ class Socket {
             }
         });
     }
-    static async requestMovementApproval(obj) {
-        let res = await game.socket.emit("module.adjusted-movement", {
+    static requestMovementApproval(obj) {
+        game.socket.emit("module.adjusted-movement", {
             type: "requestMovement",
             payload: {
                 user: game.user.id
             }
         });
-        return res;
     }
 
     static approveDenyMovement(response) {
@@ -65,12 +64,11 @@ export class AdjustedMovement {
             onChange: x => window.location.reload()
         });
 
-
-        /* Monkey Patch the ruler to pause drawing whilst awaiting confirmation */
+        /* Monkey Patch the ruler to allow the ALT key to pause drawing */
         Ruler.prototype._onMouseMove = function(event) {
             const oe = event.data.originalEvent;
             const isAlt = oe.altKey;
-            if ( this._state === Ruler.STATES.MOVING  || isAlt  || this.isLocked) return;
+            if ( this._state === Ruler.STATES.MOVING || isAlt || this.isLocked) return;
         
             // Extract event data
             const mt = event._measureTime || 0;
@@ -107,8 +105,6 @@ export class AdjustedMovement {
             }
         }
 
-        // save the original function
-        const _oldKeyUp = KeyboardManager.prototype._onSpace;
 
         // monkey patch the onSpace handler
         KeyboardManager.prototype._onSpace = function(event, up, modifiers) {
@@ -141,7 +137,7 @@ export class AdjustedMovement {
                         ruler.isLocked = false;
                     })();
                 }
-            }else if ( !modifiers.hasFocus && game.user.isGM ) {
+            } else if ( !modifiers.hasFocus && game.user.isGM ) {
                 event.preventDefault();
                 game.togglePause(null, true);
             }
@@ -213,4 +209,3 @@ function getApproval() {
 Hooks.on("init",AdjustedMovement.init);
 Hooks.on("ready",AdjustedMovement.handleMovementRequests);
 Hooks.on("controlToken",AdjustedMovement.controlToken);
-
