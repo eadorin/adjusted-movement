@@ -66,7 +66,7 @@ export class AdjustedMovement {
         });
 
 
-        /* Monkey Patch the ruler to allow the ALT key to pause drawing */
+        /* Monkey Patch the ruler to pause drawing whilst awaiting confirmation */
         Ruler.prototype._onMouseMove = function(event) {
             const oe = event.data.originalEvent;
             const isAlt = oe.altKey;
@@ -124,27 +124,22 @@ export class AdjustedMovement {
                     if ( moved ) event.preventDefault();
                 } else {
                     // our custom handler
-                    ruler.isLocked = true;
-                    let clonedRuler = {...ruler};
-                    let confirmed = (game.settings.get(mod,"skip-request")) ? true : await getConfirmation("Request the movement?");
-                    if (confirmed) {
-                        let approved = await getApproval();
-                        if (approved) {
-                            ruler.waypoints = clonedRuler.waypoints;
-                            ruler.destination = clonedRuler.destination;
-                            ruler.moveToken();
-                        } else {
-                            await showRejection();
+                    (async () => {
+                        ruler.isLocked = true;
+                        let clonedRuler = {...ruler};
+                        let confirmed = (game.settings.get(mod,"skip-request")) ? true : await getConfirmation("Request the movement?");
+                        if (confirmed) {
+                            let approved = await getApproval();
+                            if (approved) {
+                                ruler.waypoints = clonedRuler.waypoints;
+                                ruler.destination = clonedRuler.destination;
+                                ruler.moveToken();
+                            } else {
+                                await showRejection();
+                            }
                         }
-                    }
-                    ruler.isLocked = false;
-                    // (async () => {
-
-                    //     let confirm = (game.settings.get(mod,"skip-request")) ? true : await getConfirmation("Request the movement?");
-                    //     if (confirm) {
-                    //         Socket.requestMovementApproval({userid:game.user.id});
-                    //     }
-                    // })();
+                        ruler.isLocked = false;
+                    })();
                 }
             }else if ( !modifiers.hasFocus && game.user.isGM ) {
                 event.preventDefault();
