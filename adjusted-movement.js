@@ -11,19 +11,8 @@ class Socket {
                         // request received. ask to approve
                         let name = game.users.get(data.payload.user).data.name;
                         let response = await getConfirmation("Allow movement from " +name + "?");
-                        Socket.approveDenyMovement({app:response,event:data.event});
-                        //AdjustedMovement.Socket.approveDenyMovement(response);
-                        
-                        // let result = AdjustedMovement.Socket.approveDenyMovement();
-                        // AdjustedMovement.Socket.approveDenyMovement();
+                        Socket.approveDenyMovement({approval:response});
                     }
-                    break;
-                case "approveDenyMovement" :
-                        if (data.payload.approved == true) {
-                            const ruler = canvas.controls.ruler;
-                            let moved = ruler.moveToken(data.payload.event);
-                            // if ( moved ) data.payload.event.preventDefault();
-                        }
                     break;
                 default:
                     // no idea how we got an unsolicited socket request
@@ -31,24 +20,20 @@ class Socket {
             }
         });
     }
-    static async requestMovementApproval(obj) {
-        let res = await game.socket.emit("module.adjusted-movement", {
+    static requestMovementApproval(obj) {
+        game.socket.emit("module.adjusted-movement", {
             type: "requestMovement",
             payload: {
-                user: game.user.id,
-                event: obj.event
+                user: game.user.id
             }
         });
-        return res;
-        // AdjustedMovement.converse("step2")
     }
 
     static approveDenyMovement(response) {
         game.socket.emit("module.adjusted-movement", {
             type: "approveDenyMovement",
             payload: {
-                approved: response.app,
-                event: response.event
+                approved: response.approval
             }
         });
     }
@@ -57,9 +42,7 @@ class Socket {
 
 export class AdjustedMovement {
 
-
     static init() {
-
 
         game.settings.register(mod,'lock-all-tokens',{
             name: "adjusted-movement.options.lock-all-tokens.name",
@@ -70,6 +53,7 @@ export class AdjustedMovement {
             type: Boolean,
             onChange: x => window.location.reload()
         });
+
         game.settings.register(mod,'skip-request',{
             name: "adjusted-movement.options.skip-request.name",
             hint: "adjusted-movement.options.skip-request.hint",
@@ -80,12 +64,11 @@ export class AdjustedMovement {
             onChange: x => window.location.reload()
         });
 
-
         /* Monkey Patch the ruler to allow the ALT key to pause drawing */
         Ruler.prototype._onMouseMove = function(event) {
             const oe = event.data.originalEvent;
             const isAlt = oe.altKey;
-            if ( this._state === Ruler.STATES.MOVING  || isAlt) return;
+            if ( this._state === Ruler.STATES.MOVING || isAlt || this.isLocked) return;
         
             // Extract event data
             const mt = event._measureTime || 0;
@@ -115,9 +98,6 @@ export class AdjustedMovement {
     static async handleMovementRequests() {
         Socket.listen();
 
-
-        
-
         if (game.settings.get(mod,'lock-all-tokens')) {
             for ( let [i, token] of canvas.tokens.placeables.entries()){
                 if (!(token instanceof Token) || !token.actor) { continue; }
@@ -126,40 +106,41 @@ export class AdjustedMovement {
         }
 
 
-        // save the original function
-        const _oldKeyUp = KeyboardManager.prototype._onSpace;
-
         // monkey patch the onSpace handler
         KeyboardManager.prototype._onSpace = function(event, up, modifiers) {
             const ruler = canvas.controls.ruler;
             if ( up ) return;
-            let oe = event.originalEvent;
 
             // Move along a measured ruler
             if ( canvas.ready && ruler.active ) {
-
                 // ok we can move our character
-
                 if(game.user.isGM) {
-                        // Move along a measured ruler
-                    let moved = ruler.moveToken(event);
+                    // Move along a measured ruler
+                    let moved = ruler.moveToken();
                     if ( moved ) event.preventDefault();
                 } else {
-                
                     // our custom handler
                     (async () => {
-
-                        let confirm = (game.settings.get(mod,"skip-request")) ? true : await getConfirmation("Request the movement?");
-                        if (confirm) {
-                            Socket.requestMovementApproval({userid:game.user.id,event:oe});
+                        ruler.isLocked = true;
+                        let clonedRuler = {...ruler};
+                        let confirmed = (game.settings.get(mod,"skip-request")) ? true : await getConfirmation("Request the movement?");
+                        if (confirmed) {
+                            let approved = await getApproval();
+                            if (approved) {
+                                ruler.waypoints = clonedRuler.waypoints;
+                                ruler.destination = clonedRuler.destination;
+                                ruler.moveToken();
+                            } else {
+                                await showRejection();
+                            }
                         }
+                        ruler.isLocked = false;
                     })();
                 }
-            }else if ( !modifiers.hasFocus && game.user.isGM ) {
+            } else if ( !modifiers.hasFocus && game.user.isGM ) {
                 event.preventDefault();
                 game.togglePause(null, true);
             }
-
             // Flag the keydown workflow as handled
             this._handled.add(modifiers.key);
         }
@@ -169,9 +150,7 @@ export class AdjustedMovement {
         if (game.settings.get(mod,'lock-all-tokens')) {
             token.data.locked = (game.user.isGM) ? false : true;
         }
-        
     }
-
 }
 
 function getConfirmation(prompt) {
@@ -198,7 +177,35 @@ function getConfirmation(prompt) {
     });
 }
 
+function showRejection() {
+    return new Promise(resolve => {
+        new Dialog({
+            title: 'The DM rejected your move',
+            content: '',
+            buttons: {
+                ok: {
+                    label: "OK",
+                    callback: () => {
+                        resolve(true);
+                    }
+                }
+            },
+            default:"ok"
+        }).render(true);
+    });
+}
+
+function getApproval() {
+    return new Promise(resolve => {
+        Socket.requestMovementApproval({userid:game.user.id});
+        game.socket.on("module.adjusted-movement", data => {
+            if (data.type === "approveDenyMovement" ) {
+                resolve(data.payload.approved === true);
+            }
+        });
+    });
+}
+
 Hooks.on("init",AdjustedMovement.init);
 Hooks.on("ready",AdjustedMovement.handleMovementRequests);
 Hooks.on("controlToken",AdjustedMovement.controlToken);
-
